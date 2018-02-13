@@ -37,7 +37,7 @@ namespace SpreadsheetApp
             var reversedList = ReversePolishNotation(numbersList);
         }
 
-        private List<string> ReversePolishNotation(List<string> numbersList)
+        private double ReversePolishNotation(List<string> numbersList)
         {
             var output = new List<string>();
             var stack = new List<string>();
@@ -55,7 +55,7 @@ namespace SpreadsheetApp
                 }
                 else if (dict[numbersList[i]] <= dict[stack[stack.Count]])
                 {
-                    output.Add(stack[stack.Count]);
+                    output.Add(stack[stack.Count-1]);
                 }
                 else
                 {
@@ -70,6 +70,47 @@ namespace SpreadsheetApp
                     output.Add(mathOp);
                 }
             }
+
+            foreach (var item in output)
+            {
+                double result;
+
+                if (item == "+" || item == "-" || item == "*" || item == "/")
+                {
+                    switch (item)
+                    {
+                        case "+":
+                            result = Double.Parse(stack[0]) + Double.Parse(stack[1]);
+                            stack.Clear();
+                            stack.Add(result.ToString());
+                            break;
+                        case "-":
+                            result = Double.Parse(stack[0]) - Double.Parse(stack[1]);
+                            stack.Clear();
+                            stack.Add(result.ToString());
+                            break;
+                        case "*":
+                            result = Double.Parse(stack[0]) * Double.Parse(stack[1]);
+                            stack.Clear();
+                            stack.Add(result.ToString());
+
+                            break;
+                        case "/":
+                            result = Double.Parse(stack[0]) / Double.Parse(stack[1]);
+
+                            stack.Clear();
+                            stack.Add(result.ToString());
+
+                            break;
+                    }
+                }
+                else
+                {
+                    stack.Add(item);
+                }
+            }
+
+            return Double.Parse(stack[0]);
         }
 
 
@@ -106,7 +147,6 @@ namespace SpreadsheetApp
             return numbersList;
         }
 
-        //wersja szymona:
         private string ConvertToNumber(string input)
         {
             if (Double.TryParse(input, out double value))
