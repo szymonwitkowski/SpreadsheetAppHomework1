@@ -1,5 +1,7 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using SpreadsheetApp.Data;
@@ -26,7 +28,7 @@ namespace SpreadsheetApp
                         GetArithmeticOperation();
                         break;
                 }
-            };
+            }
         }
 
         private void GetArithmeticOperation()
@@ -34,85 +36,111 @@ namespace SpreadsheetApp
             var input = Console.ReadLine();
             var inputList = SplitStringToArrayByOperator(input);
             var numbersList = GetNumbersFromInput(inputList);
-            var reversedList = ReversePolishNotation(numbersList);
+           // var reversedList = ReversePolishNotation(numbersList);
         }
 
+        //moja wersja
         private double ReversePolishNotation(List<string> numbersList)
         {
+            var stack = new Stack<string>();
             var output = new List<string>();
-            var stack = new List<string>();
-            Dictionary<string, int> dict = new Dictionary<string, int>();
-            dict.Add("+", 2);
-            dict.Add("-", 2);
-            dict.Add("*", 3);
-            dict.Add("/", 3);
+            //var stack = new List<string>();
+            Dictionary<string, int> dict = new Dictionary<string, int>
+                {
+                    { "+", 2},
+                    { "-", 2},
+                    { "*", 3},
+                    { "/", 3}
+                };
 
-            for (var i = 0; i < numbersList.Count; i++)
+            foreach (var t in numbersList)
             {
-                if (i % 2 == 0)
+                if (double.TryParse(t, out double result))
                 {
-                    output.Add(numbersList[i]);
+                    output.Add(result.ToString());
                 }
-                else if (dict[numbersList[i]] <= dict[stack[stack.Count]])
+                else if (stack.Count == 0)
                 {
-                    output.Add(stack[stack.Count-1]);
+                    stack.Push(t);
+                    //stack.Add(numbersList[i]);
+                }
+                else if (dict[t] <= dict[stack.Peek()]/*dict[stack[stack.Count-1]]*/)
+                {
+                    output.Add(stack.Peek());
+                    stack.Pop();
+                    if (dict[t] <= dict[stack.Peek()] || stack.Count == 0)
+                    {
+                        output.Add(stack.Peek());
+                        stack.Pop();
+                    }
+                    stack.Push(t);
+
+                    //output.Add(stack[stack.Count - 1]);
+                    //stack.Remove(stack[stack.Count-1]);
+                    //stack.Add(numbersList[i]);
                 }
                 else
                 {
-                    stack.Add(numbersList[i]);
+                    stack.Push(t);
+                    //stack.Add(numbersList[i]);
                 }
             }
 
             if (stack.Count > 0)
             {
-                foreach (var mathOp in stack)
+                foreach (var mathOperator in stack)
                 {
-                    output.Add(mathOp);
+                    output.Add(mathOperator);
                 }
             }
 
-            foreach (var item in output)
+            for (int i = 0; i < output.Count; i++)
             {
                 double result;
 
-                if (item == "+" || item == "-" || item == "*" || item == "/")
+                if (output[i] == "+" || output[i] == "-" || output[i] == "*" || output[i] == "/")
                 {
-                    switch (item)
+                    switch (output[i])
                     {
                         case "+":
-                            result = Double.Parse(stack[0]) + Double.Parse(stack[1]);
-                            stack.Clear();
-                            stack.Add(result.ToString());
+                            result = Double.Parse(output[i - 2]) + Double.Parse(output[i - 1]);
+                            output[i - 2] = result.ToString();
+                            output.Remove(output[i - 1]);
+                            i--;
+                            output.Remove(output[i]);
+                            i--;
                             break;
                         case "-":
-                            result = Double.Parse(stack[0]) - Double.Parse(stack[1]);
-                            stack.Clear();
-                            stack.Add(result.ToString());
+                            result = Double.Parse(output[i - 2]) - Double.Parse(output[i - 1]);
+                            output[i - 2] = result.ToString();
+                            output.Remove(output[i - 1]);
+                            i--;
+                            output.Remove(output[i]);
+                            i--;
                             break;
                         case "*":
-                            result = Double.Parse(stack[0]) * Double.Parse(stack[1]);
-                            stack.Clear();
-                            stack.Add(result.ToString());
-
+                            result = Double.Parse(output[i - 2]) * Double.Parse(output[i - 1]);
+                            output[i - 2] = result.ToString();
+                            output.Remove(output[i - 1]);
+                            i--;
+                            output.Remove(output[i]);
+                            i--;
                             break;
                         case "/":
-                            result = Double.Parse(stack[0]) / Double.Parse(stack[1]);
-
-                            stack.Clear();
-                            stack.Add(result.ToString());
-
+                            result = Double.Parse(output[i - 2]) / Double.Parse(output[i - 1]);
+                            output[i - 2] = result.ToString();
+                            output.Remove(output[i - 1]);
+                            i--;
+                            output.Remove(output[i]);
+                            i--;
                             break;
                     }
                 }
-                else
-                {
-                    stack.Add(item);
-                }
             }
+            var calculationResult = Double.Parse(output[0]);
 
-            return Double.Parse(stack[0]);
+            return calculationResult;
         }
-
 
         private List<string> SplitStringToArrayByOperator(string input)
         {
@@ -132,6 +160,7 @@ namespace SpreadsheetApp
         private List<string> GetNumbersFromInput(List<string> inputList)
         {
             var numbersList = new List<string>();
+
             for (var i = 0; i < inputList.Count; i++)
             {
                 if (i % 2 == 0)
@@ -146,7 +175,7 @@ namespace SpreadsheetApp
 
             return numbersList;
         }
-
+        
         private string ConvertToNumber(string input)
         {
             if (Double.TryParse(input, out double value))
@@ -154,12 +183,10 @@ namespace SpreadsheetApp
                 return input;
             }
 
+            var arraySplitByOperators = SplitStringToArrayByOperator(input);
+            var arithmeticExpressionArray = GetNumbersFromInput(arraySplitByOperators);
 
-            var dupa = SplitStringToArrayByOperator(input);
-            var notdupa = GetNumbersFromInput(dupa);
-
-            ReversePolishNotation(notdupa);
-            return "";
+            return ReversePolishNotation(arithmeticExpressionArray).ToString();
         }
 
         private void InputData()
@@ -195,7 +222,7 @@ namespace SpreadsheetApp
                 Console.WriteLine("Wrong input");
                 return;
             }
-            
+
             if (inputString[inputString.Length - 1] != ';')
             {
                 InputData();
@@ -207,14 +234,6 @@ namespace SpreadsheetApp
             Console.WriteLine("Menu");
             Console.WriteLine("1. Input values");
             Console.WriteLine("2. Input operation");
-
-        }
-
-        public void ConvertListToTokens()
-        {
-           
-
-            
         }
     }
 }
