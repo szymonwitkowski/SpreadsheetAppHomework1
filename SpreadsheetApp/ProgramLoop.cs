@@ -36,15 +36,12 @@ namespace SpreadsheetApp
             var input = Console.ReadLine();
             var inputList = SplitStringToArrayByOperator(input);
             var numbersList = GetNumbersFromInput(inputList);
-           // var reversedList = ReversePolishNotation(numbersList);
         }
 
-        //moja wersja
         private double ReversePolishNotation(List<string> numbersList)
         {
             var stack = new Stack<string>();
             var output = new List<string>();
-            //var stack = new List<string>();
             Dictionary<string, int> dict = new Dictionary<string, int>
                 {
                     { "+", 2},
@@ -62,9 +59,8 @@ namespace SpreadsheetApp
                 else if (stack.Count == 0)
                 {
                     stack.Push(t);
-                    //stack.Add(numbersList[i]);
                 }
-                else if (dict[t] <= dict[stack.Peek()]/*dict[stack[stack.Count-1]]*/)
+                else if (dict[t] <= dict[stack.Peek()])
                 {
                     output.Add(stack.Peek());
                     stack.Pop();
@@ -74,15 +70,10 @@ namespace SpreadsheetApp
                         stack.Pop();
                     }
                     stack.Push(t);
-
-                    //output.Add(stack[stack.Count - 1]);
-                    //stack.Remove(stack[stack.Count-1]);
-                    //stack.Add(numbersList[i]);
                 }
                 else
                 {
                     stack.Push(t);
-                    //stack.Add(numbersList[i]);
                 }
             }
 
