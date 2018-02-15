@@ -8,6 +8,6 @@ namespace SpreadsheetApp.Data
 {
     public static class ProgramData
     {
-        public static List<List<double>> Spreadsheet = new List<List<double>>();
+        public static List<List<string>> Spreadsheet = new List<List<string>>();
     }
 }
