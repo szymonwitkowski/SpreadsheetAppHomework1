@@ -1,10 +1,8 @@
-﻿using System;
-using System.CodeDom.Compiler;
+﻿using SpreadsheetApp.Data;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
-using SpreadsheetApp.Data;
 
 namespace SpreadsheetApp
 {
@@ -20,11 +18,11 @@ namespace SpreadsheetApp
                 switch (menuOption)
                 {
                     case "1":
-                        Console.WriteLine("values:\n");
+                        Console.WriteLine("Input values:\n");
                         InputData();
                         break;
                     case "2":
-                        Console.WriteLine("input arithmetic op");
+                        Console.WriteLine("Input arithmetic operation:");
                         GetArithmeticOperation();
                         break;
                 }
@@ -34,8 +32,11 @@ namespace SpreadsheetApp
         private void GetArithmeticOperation()
         {
             var input = Console.ReadLine();
+
             var inputList = SplitStringToArrayByOperator(input);
             var numbersList = GetNumbersFromInput(inputList);
+            var calculationResult = ReversePolishNotation(numbersList);
+            Console.WriteLine($"Calulation result: {calculationResult}");
         }
 
         private double ReversePolishNotation(List<string> numbersList)
@@ -135,6 +136,7 @@ namespace SpreadsheetApp
 
         private List<string> SplitStringToArrayByOperator(string input)
         {
+
             string pattern = @"([+]|[*]|[-]|[\/])";
             var inputList = new List<string>();
 
@@ -173,11 +175,8 @@ namespace SpreadsheetApp
             {
                 return input;
             }
-
-            var arraySplitByOperators = SplitStringToArrayByOperator(input);
-            var arithmeticExpressionArray = GetNumbersFromInput(arraySplitByOperators);
-
-            return ReversePolishNotation(arithmeticExpressionArray).ToString();
+           
+            return ConvertCellIndexToNumber(input);
         }
 
         private void InputData()
@@ -189,8 +188,7 @@ namespace SpreadsheetApp
         private void SeparateValues(string inputString)
         {
             var tempDoubleList = new List<string>();
-
-
+            
             if (inputString.EndsWith("|") || inputString.EndsWith(";"))
             {
                 var inputStringWithoutEndingChars = inputString.Remove(inputString.Length - 1);
@@ -204,9 +202,8 @@ namespace SpreadsheetApp
 
                     tempDoubleList.Add(input);
                 }
-
+                
                 ProgramData.Spreadsheet.Add(tempDoubleList);
-
             }
             else
             {
@@ -218,6 +215,38 @@ namespace SpreadsheetApp
             {
                 InputData();
             }
+
+            for (int i = 0; i < ProgramData.Spreadsheet.Count; i++)
+            {
+                for (int j = 0; j < ProgramData.Spreadsheet[i].Count; j++)
+                {
+                    if (Double.TryParse(ProgramData.Spreadsheet[i][j], out double result))
+                    {
+                    }
+                    else
+                    {
+                        ProgramData.Spreadsheet[i][j] = ConvertCellIndexToNumber(ProgramData.Spreadsheet[i][j]);
+                    }
+                }
+            }
+        }
+
+        private string ConvertCellIndexToNumber(string s)
+        {
+            var result = SplitStringToArrayByOperator(s);
+            string columnIndex ="";
+            string rowIndex = "";
+            string valueInCell = "";
+            if (result.Count == 1)
+            {
+                columnIndex = s.Substring(0,1);
+                rowIndex = s.Remove(0, 1);
+                var asciiCharacterValue = 65;
+                valueInCell =
+                    ProgramData.Spreadsheet[Convert.ToInt32(rowIndex)][(int) columnIndex[0] - asciiCharacterValue];
+            }
+
+            return valueInCell;
         }
 
         public void PrintMenu()
